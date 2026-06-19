@@ -35,7 +35,10 @@
 
 /* Regular work RAM (32 kbytes?)
  * on the gameboy maximum of 128kbyte of RAM is possible, plus some internal ram (64KB) */
-unsigned char __attribute__ ((__aligned__(4))) mainram[(64+32+128)*1024];
+/* G&W: low region (Z80 RAM @0x3000 is capped to addr<0x4000, plus I/O) only
+ * needs ~28KB, so cpuram is relocated to a 32KB offset (see mem_init) and the
+ * wasted padding is dropped: 32KB low + 96KB cpuram = 128KB (was 224KB). */
+unsigned char __attribute__ ((__aligned__(4))) mainram[(32+96)*1024];
 /* ROM area for roms (4 Megabyte)
  * G&W port: the cart ROM stays memory-mapped in external flash (XIP); we keep
  * only a pointer to it instead of a 4 MiB RAM copy (mirrors PCE.ROM). The
@@ -355,7 +358,7 @@ void mem_init(void)
 	{
 		case NGP:
 		case NGPC:
-			cpuram = &mainram[128*1024];
+			cpuram = &mainram[32*1024];
 			if(!loadBIOS())
 			{
 				realBIOSloaded = 0;
