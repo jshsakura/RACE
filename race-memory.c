@@ -36,8 +36,13 @@
 /* Regular work RAM (32 kbytes?)
  * on the gameboy maximum of 128kbyte of RAM is possible, plus some internal ram (64KB) */
 unsigned char __attribute__ ((__aligned__(4))) mainram[(64+32+128)*1024];
-/* ROM area for roms (4 Megabyte) */
-unsigned char __attribute__ ((__aligned__(4))) mainrom[MAINROM_SIZE_MAX];
+/* ROM area for roms (4 Megabyte)
+ * G&W port: the cart ROM stays memory-mapped in external flash (XIP); we keep
+ * only a pointer to it instead of a 4 MiB RAM copy (mirrors PCE.ROM). The
+ * mainrom_in_flash flag gates the cart-flash save writes, which must not be
+ * issued against read-only flash. */
+unsigned char *mainrom = NULL;
+int mainrom_in_flash = 0;
 /* CPU internal ROM including vector table starting at 0xff0000 */
 unsigned char __attribute__ ((__aligned__(4))) cpurom[256*1024];//prob only needs 0x10000
 unsigned char __attribute__ ((__aligned__(4))) *cpuram;

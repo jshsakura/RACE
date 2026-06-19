@@ -35,7 +35,11 @@ extern int finscan;
 extern int language;
 extern int tipo_consola;
 
+#ifdef GNW_NGP
+retro_log_printf_t log_cb = 0; /* G&W: no libretro logger; log calls are no-ops */
+#else
 extern retro_log_printf_t log_cb;
+#endif
 
 /* standard VRAM table adresses */
 unsigned char *sprite_table           = NULL;
@@ -248,17 +252,26 @@ int handleInputFile(const char *romName,
 		int size = romSize > MAINROM_SIZE_MAX ?
 				MAINROM_SIZE_MAX : romSize;
 
-		/* Fill unused cart space with open-bus (0xFF) so reads past the
-		 * actual ROM are deterministic and do not retain stale data from
-		 * a previously loaded game. */
-		memset(mainrom, 0xFF, MAINROM_SIZE_MAX);
+		/* G&W port: reference the flash-mapped ROM directly (XIP) rather than
+		 * copying up to 4 MiB into RAM. Reads past the ROM fall outside the
+		 * cart address decode, so no open-bus fill is needed here. */
+		mainrom = (unsigned char *)romData;
+		mainrom_in_flash = 1;
 
 		m_emuInfo.romSize = size;
-		memcpy(mainrom, romData, size);
 		strncpy(m_emuInfo.RomFileName, romName,
 				sizeof(m_emuInfo.RomFileName) - 1);
 		m_emuInfo.RomFileName[sizeof(m_emuInfo.RomFileName) - 1] = '\0';
 	}
+#ifdef GNW_NGP
+	else
+	{
+		/* G&W: ROM is always supplied as a flash pointer (XIP); no file fallback. */
+		if (log_cb)
+			log_cb(RETRO_LOG_ERROR, "No ROM data provided\n");
+		return 0;
+	}
+#else
 	else
 	{
 		int64_t size   = 0;
@@ -293,6 +306,7 @@ int handleInputFile(const char *romName,
 				sizeof(m_emuInfo.RomFileName) - 1);
 		m_emuInfo.RomFileName[sizeof(m_emuInfo.RomFileName) - 1] = '\0';
 	}
+#endif /* GNW_NGP */
 
 	if (!initRom())
 	{

@@ -39,7 +39,8 @@ extern uint8_t	ngpInputState;
 #define MAINROM_SIZE_MAX (4*1024*1024)
 
 extern unsigned char mainram[];			/* All RAM areas */
-extern unsigned char mainrom[];			/* ROM image area */
+extern unsigned char *mainrom;			/* ROM image area (XIP from external flash) */
+extern int mainrom_in_flash;			/* set when mainrom points at read-only flash */
 extern unsigned char cpurom[];			/* Bios ROM image area */
 
 /* TLCS 900h memory */

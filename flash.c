@@ -14,12 +14,14 @@
  */
 
 #include <string.h>
+#ifndef GNW_NGP
 #include <streams/file_stream.h>
 #ifdef _WIN32
 #include <direct.h>
 #else
 #include <unistd.h>
 #endif
+#endif /* GNW_NGP */
 #include "race-memory.h"
 #include "types.h"
 #include "flash.h"
@@ -214,6 +216,13 @@ void setupNGFfilename(void)
       strcpy(&ngfFilename[dotSpot+1], "ngf");
 }
 
+#ifdef GNW_NGP
+/* G&W v1: cart-flash .NGF persistence is stubbed to avoid the libretro VFS
+ * dependency. The running game still observes its own writes via the in-RAM
+ * flash state; cross-boot save persistence (COW + SD file) is a follow-up. */
+void writeSaveGameFile(void) { needToWriteFile = 0; }
+void loadSaveGameFile(void) { }
+#else
 /* write all the dirty blocks out to a file */
 void writeSaveGameFile(void)
 {
@@ -462,6 +471,7 @@ void loadSaveGameFile(void)
 
    free(blockMem);
 }
+#endif /* GNW_NGP */
 
 void flashWriteByte(unsigned int addr, unsigned char data, unsigned char operation)
 {
@@ -486,6 +496,11 @@ void flashWriteByte(unsigned int addr, unsigned char data, unsigned char operati
     * flash memory can be erased (changed to 0xFF)
     * and when written, 1s can become 0s, but you can't turn 0s into 1s (except by erasing)
     */
+   /* G&W: mainrom is read-only flash (XIP), so a store would fault. v1 drops
+    * the cart-flash save write; the RAM copy-on-write shadow lands in v2. */
+   if(mainrom_in_flash)
+      return;
+
    if(operation == FLASH_ERASE)
       mainrom[addr] = 0xFF;		/* we're just erasing, so set to 0xFF */
    else
