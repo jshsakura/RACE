@@ -40,7 +40,11 @@ SoundChip toneChip;
 SoundChip noiseChip;
 
 /* ==== DAC */
-#define DAC_BUFFERSIZE		(256 * 1024) /* at (256 * 1024) the PC version will crash on MS2 intro */
+/* G&W: the DAC ring is fully drained every frame by dac_update(), so it only
+ * needs a few frames of headroom (one frame ~ 735 samples @ 44.1kHz). The huge
+ * 256K PC value (512KB array) does not fit the RAM_EMU overlay; 16K entries
+ * (32KB) give ~22 frames of slack and overflow degrades to a wrap, not a crash. */
+#define DAC_BUFFERSIZE		(16 * 1024)
 
 int dacLBufferRead, dacLBufferWrite, dacLBufferCount;
 uint16_t dacBufferL[DAC_BUFFERSIZE];
