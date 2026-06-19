@@ -33,7 +33,7 @@ extern int gfx_hacks;
  * A graphics buffer holds number referencing to the color from
  * the "total palette" for that system.
  */
-int    totalpalette[32*32*32];
+int    totalpalette[16*16*16]; /* G&W: indexed by b*256+g*16+r (4-bit each) = max 4095 */
 
 /* Allows application of a 'dark filter' to reduce the
  * glare of white backgrounds when viewing NGP content

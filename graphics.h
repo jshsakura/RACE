@@ -70,7 +70,7 @@ void myGraphicsBlitLine(unsigned char render);
  */
 
 extern unsigned short palettes[16*4+16*4+16*4]; /* placeholder for the converted palette */
-extern int    totalpalette[32*32*32];
+extern int    totalpalette[16*16*16];
 #define NGPC_TO_RGB565(col) totalpalette[col & 0x0FFF]
 
 #define setColPaletteEntry(addr, data) palettes[(addr)] = NGPC_TO_RGB565(data)
