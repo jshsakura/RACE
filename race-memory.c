@@ -44,7 +44,7 @@ unsigned char __attribute__ ((__aligned__(4))) mainram[(64+32+128)*1024];
 unsigned char *mainrom = NULL;
 int mainrom_in_flash = 0;
 /* CPU internal ROM including vector table starting at 0xff0000 */
-unsigned char __attribute__ ((__aligned__(4))) cpurom[256*1024];//prob only needs 0x10000
+unsigned char __attribute__ ((__aligned__(4))) cpurom[64*1024]; /* G&W: TLCS900 internal ROM at 0xff0000 is 64KB; was over-allocated at 256KB */
 unsigned char __attribute__ ((__aligned__(4))) *cpuram;
 /* declare LDC registers */
 unsigned char __attribute__ ((__aligned__(4))) ldcRegs[64];
