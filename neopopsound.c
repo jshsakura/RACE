@@ -359,10 +359,14 @@ void dac_update(uint16_t* dac_buffer, int length_bytes)
 /*============================================================================= */
 
 /*Resets the sound chips, also used whenever sound options are changed */
+int s_sound_sample_rate = 44100;  /* remembered for sound_reset_on_load() */
+
 void sound_init(int SampleRate)
 {
 	int i;
 	double out;
+
+	s_sound_sample_rate = SampleRate;
 
 	/* the base clock for the tone generators is the chip clock divided by 16; */
 	/* for the noise generator, it is clock / 256. */
@@ -452,6 +456,15 @@ void dac_ring_reset(void)
    dacLBufferCount = 0;
    dacLBufferRead  = 0;
    dacLBufferWrite = 0;
+}
+
+/* Full clean-silence reset used right after a savestate load. The restored
+ * chip registers can leave a tone latched on; during the brief post-load stall
+ * that leaks out as a continuous beep. Silencing the chips (the game's sound
+ * driver re-establishes audio within a frame or two) is cleaner than the beep. */
+void sound_reset_on_load(void)
+{
+   sound_init(s_sound_sample_rate);
 }
 
 /* Accessors for the band-limited (Blip) audio path, so it reads exactly the

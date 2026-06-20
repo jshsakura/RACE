@@ -301,11 +301,12 @@ static int state_restore(race_state_t *rs)
   if (neopop_audio_accurate)
      neopop_blip_reset();
 
-  /* The DAC ring indices aren't serialised; realign them to the restored chip
-   * state so resumed audio doesn't break up. */
+  /* Silence the sound chips + DAC on load: the restored registers can leave a
+   * tone latched on, which leaks out as a continuous beep during the brief
+   * post-load stall. The game's sound driver re-establishes audio immediately. */
   {
-     extern void dac_ring_reset(void);
-     dac_ring_reset();
+     extern void sound_reset_on_load(void);
+     sound_reset_on_load();
   }
 
   /* Timers */
