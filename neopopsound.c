@@ -209,7 +209,6 @@ void sound_update(uint16_t* chip_buffer, int length_bytes)
 
 void WriteSoundChip(SoundChip* chip, uint8_t data)
 {
-	{ extern unsigned int g_dbg_sndw; g_dbg_sndw++; }
 	/* Command */
 	if (data & 0x80)
 	{
