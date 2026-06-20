@@ -273,14 +273,6 @@ static int state_restore(race_state_t *rs)
   memcpy(RACE_cz80_struc, &rs->RACE_cz80_struc, size_of_z80);
   Z80_ICount = rs->Z80_ICount;
   Cz80_Set_PC(RACE_cz80_struc, rs->PC_offset);
-  /* Re-arm the sound Z80's maskable interrupt after a load. Symptom: the music
-   * freezes on the last note and only changes when the game sends a new sound
-   * command (a screen change) — i.e. the Timer3 IRQ that clocks the music tempo
-   * is being ignored while the NMI command path still works. That means the Z80
-   * came back unable to accept the maskable IRQ. Force IFF1/IFF2 enabled and
-   * drop any latched HALT so the next Timer3 IRQ resumes the note sequence. */
-  Cz80_Set_IFF(RACE_cz80_struc, 3);
-  RACE_cz80_struc->Status &= ~CZ80_HALTED;
 #elif DRZ80
   {
     /* Saved PC/SP are guest-relative offsets (see state_store).  Pull them
@@ -300,6 +292,18 @@ static int state_restore(race_state_t *rs)
   sndCycles = rs->sndCycles;
   memcpy(&toneChip, &rs->toneChip, sizeof(SoundChip));
   memcpy(&noiseChip, &rs->noiseChip, sizeof(SoundChip));
+
+  /* Re-enable the sound Z80. ngpRunning is a DERIVED flag — it is set only when
+   * the game writes 0x55 to the 0xB9 sound-reset register (race-memory.h), and
+   * it is NOT part of the snapshot. After a load the game has already passed that
+   * write, so ngpRunning stays 0 and ngpSoundExecute never runs the Z80 → the
+   * music freezes on its last note until some later event re-writes 0x55 (which
+   * is exactly what on-device T3-grows / Z80=0 / SW=0 showed). The state we just
+   * restored had sound active, so force it back on. */
+  {
+     extern unsigned int ngpRunning;
+     ngpRunning = 1;
+  }
 
   /* The band-limited (accurate) audio path is a pure observer of the chip
    * registers above and re-derives its parameters each step, so it needs no
