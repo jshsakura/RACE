@@ -311,6 +311,11 @@ static int state_restore(race_state_t *rs)
   {
      extern void dac_ring_reset(void);
      dac_ring_reset();
+     /* Mute the OUTPUT (not the chip) until the game writes sound again, so a
+      * restored-but-latched tone doesn't drone until the next note. Set back to
+      * 1 by WriteSoundChip/dac_writeL on the game's next sound write. */
+     extern int ngp_audio_active;
+     ngp_audio_active = 0;
   }
 
   /* Timers */
