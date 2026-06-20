@@ -333,6 +333,12 @@ static int state_restore(race_state_t *rs)
   /* Reinitialize TLCS (mainly redirect pointers) */
   tlcs_reinit();
 
+  /* The interrupt-controller pending queue is not snapshotted; drop the stale
+   * pre-load entries so the restored game's Timer3 IRQ (Z80 sound tempo) isn't
+   * masked/misrouted — otherwise music freezes on the last note until the game
+   * next raises an interrupt. Timers re-raise real IRQs within a frame. */
+  tlcs_clear_pending_interrupts();
+
   return 1;
 }
 

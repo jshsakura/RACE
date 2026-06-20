@@ -61,6 +61,7 @@ extern int setting_ngp_language;
 /* initialize registers, etc.. */
 void tlcs_init(void);
 void tlcs_reinit(void);
+void tlcs_clear_pending_interrupts(void);
 /* execute interrupt */
 void tlcs_interrupt_wrapper(int irq);
 void tlcs_execute(int cycles, int skipRender); /* skipRender != 0: run the frame but render no video */

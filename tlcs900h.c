@@ -7061,6 +7061,22 @@ void tlcs_init(void)
     }
 }
 
+/* Clear the interrupt-controller pending queue. Used after a savestate load:
+ * interruptPendingLevel / pendingInterrupts are globals NOT part of the
+ * snapshot, so on load they hold stale entries from the pre-load run. A stale
+ * pending level masks/misroutes the Timer3 IRQ (0x09) that clocks the Z80 sound
+ * CPU, freezing the music on its last note (it only updates when the game later
+ * raises a fresh interrupt). The running timers re-raise real IRQs within a
+ * frame, so a clean slate is correct and self-heals. */
+void tlcs_clear_pending_interrupts(void)
+{
+    int i, j;
+    interruptPendingLevel = 0;
+    for (i = 0; i < 7; i++)
+        for (j = 0; j < INT_QUEUE_MAX; j++)
+            pendingInterrupts[i][j] = 0;
+}
+
 void tlcs_reinit(void)
 {
     int j;
