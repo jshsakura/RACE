@@ -207,16 +207,8 @@ void sound_update(uint16_t* chip_buffer, int length_bytes)
 
 /* ============================================================================= */
 
-/* Set whenever the GAME drives the sound chip or DAC. A savestate load clears it
- * (state_restore) so the host keeps the OUTPUT muted until the game's sound
- * driver produces the next sound — the restored chip can hold a latched tone
- * that would otherwise drone until the next note. Muting only the output (not
- * the chip) means the music itself is preserved and resumes on that next write. */
-int ngp_audio_active = 1;
-
 void WriteSoundChip(SoundChip* chip, uint8_t data)
 {
-	ngp_audio_active = 1;
 	/* Command */
 	if (data & 0x80)
 	{
@@ -295,8 +287,6 @@ void dac_writeL(unsigned char data)
 {
    unsigned i;
    static int conv=5;
-
-   ngp_audio_active = 1;
 
    if (neopop_audio_accurate)
    {
