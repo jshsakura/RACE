@@ -69,6 +69,11 @@ void soundStep(int cycles)
 
 unsigned int	ngpRunning;
 
+/* Loadstate sound-debug counters (shown on the NGP screen). T3 = Timer3 IRQs,
+ * Z80 = sound-Z80 cycles executed, SW = WriteSoundChip calls. After a load they
+ * reveal where the sound chain breaks (timer / Z80 run / sequencer write). */
+unsigned int g_dbg_t3 = 0, g_dbg_z80run = 0, g_dbg_sndw = 0;
+
 void ngpSoundStart(void)
 {
    ngpRunning = 1;	/* ? */
@@ -85,8 +90,10 @@ void ngpSoundExecute(void)
 {
 #if defined(DRZ80) || defined(CZ80)
    int toRun = sndCycles/2;
-   if(ngpRunning)
+   if(ngpRunning) {
       Z80_Execute(toRun);
+      g_dbg_z80run += (toRun > 0) ? (unsigned int)toRun : 0;
+   }
    sndCycles -= toRun;
 #else
    int		elapsed;

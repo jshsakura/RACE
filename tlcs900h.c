@@ -7224,6 +7224,8 @@ static INLINE void tlcs_interrupt(int irq)
     // Check for timer3 interrupt => generate irq to z80
     if (irq == 0x09)
     {
+        extern unsigned int g_dbg_t3;
+        g_dbg_t3++;
         ngpSoundExecute();
         ngpSoundInterrupt();
     }
