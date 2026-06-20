@@ -273,6 +273,14 @@ static int state_restore(race_state_t *rs)
   memcpy(RACE_cz80_struc, &rs->RACE_cz80_struc, size_of_z80);
   Z80_ICount = rs->Z80_ICount;
   Cz80_Set_PC(RACE_cz80_struc, rs->PC_offset);
+  /* Re-arm the sound Z80's maskable interrupt after a load. Symptom: the music
+   * freezes on the last note and only changes when the game sends a new sound
+   * command (a screen change) — i.e. the Timer3 IRQ that clocks the music tempo
+   * is being ignored while the NMI command path still works. That means the Z80
+   * came back unable to accept the maskable IRQ. Force IFF1/IFF2 enabled and
+   * drop any latched HALT so the next Timer3 IRQ resumes the note sequence. */
+  Cz80_Set_IFF(RACE_cz80_struc, 3);
+  RACE_cz80_struc->Status &= ~CZ80_HALTED;
 #elif DRZ80
   {
     /* Saved PC/SP are guest-relative offsets (see state_store).  Pull them
