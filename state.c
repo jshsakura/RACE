@@ -301,12 +301,16 @@ static int state_restore(race_state_t *rs)
   if (neopop_audio_accurate)
      neopop_blip_reset();
 
-  /* Silence the sound chips + DAC on load: the restored registers can leave a
-   * tone latched on, which leaks out as a continuous beep during the brief
-   * post-load stall. The game's sound driver re-establishes audio immediately. */
+  /* Resync the DAC ring to the restored chip state WITHOUT wiping the registers.
+   * The old sound_reset_on_load() called sound_init(), which re-initialised the
+   * tone/noise chips and so DISCARDED the toneChip/noiseChip we just restored
+   * above (lines ~293-294) — games that program their music once (most of them)
+   * then went permanently silent after a load. The DAC read/write indices are
+   * not part of the snapshot, so only THEY need clearing to avoid post-load
+   * noise; dac_ring_reset() does exactly that and leaves the music intact. */
   {
-     extern void sound_reset_on_load(void);
-     sound_reset_on_load();
+     extern void dac_ring_reset(void);
+     dac_ring_reset();
   }
 
   /* Timers */
