@@ -301,6 +301,13 @@ static int state_restore(race_state_t *rs)
   if (neopop_audio_accurate)
      neopop_blip_reset();
 
+  /* The DAC ring indices aren't serialised; realign them to the restored chip
+   * state so resumed audio doesn't break up. */
+  {
+     extern void dac_ring_reset(void);
+     dac_ring_reset();
+  }
+
   /* Timers */
   timer0 = rs->timer0;
   timer1 = rs->timer1;

@@ -439,6 +439,21 @@ void system_sound_chipreset(int sample_rate)
    sound_init(sample_rate);
 }
 
+/* Clear only the DAC ring (indices + samples), leaving the tone/noise chip
+ * registers untouched. The DAC read/write indices are not part of the
+ * savestate, so after a state restore they no longer line up with the
+ * restored chip state and playback turns to noise; resetting just the ring
+ * fixes that without discarding the restored registers. */
+void dac_ring_reset(void)
+{
+   int i;
+   for (i = 0; i < DAC_BUFFERSIZE; i++)
+      dacBufferL[i] = 0;
+   dacLBufferCount = 0;
+   dacLBufferRead  = 0;
+   dacLBufferWrite = 0;
+}
+
 /* Accessors for the band-limited (Blip) audio path, so it reads exactly the
  * same decoded oscillator state that sample_chip_tone/sample_chip_noise use,
  * rather than re-decoding the registers (which split tone frequency and volume
